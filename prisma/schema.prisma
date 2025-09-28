@@ -1,0 +1,84 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String     @id @default(cuid())
+  name           String
+  email          String     @unique
+  hashedPassword String?
+  googleId       String?    @unique
+  address        String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  cartItems      CartItem[]
+  orders         Order[]
+}
+
+model Pizza {
+  id          String      @id @default(cuid())
+  name        String
+  description String
+  imageUrl    String
+  // store money as integer cents to avoid floating point issues
+  priceCents  Int
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  pizza     Pizza    @relation(fields: [pizzaId], references: [id])
+  pizzaId   String
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // prevent duplicate cart rows for the same user+pizza
+  @@unique([userId, pizzaId], name: "userId_pizzaId")
+}
+
+model Order {
+  id                  String      @id @default(cuid())
+  user                User        @relation(fields: [userId], references: [id])
+  userId              String
+  totalCents          Int
+  currency            String
+  status              String
+  stripePaymentIntent String?     @unique
+  items               OrderItem[]
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  Payment             Payment[]
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  order     Order  @relation(fields: [orderId], references: [id])
+  orderId   String
+  pizza     Pizza  @relation(fields: [pizzaId], references: [id])
+  pizzaId   String
+  quantity  Int
+  unitPrice Int // cents
+}
+
+model Payment {
+  id          String   @id @default(cuid())
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+  stripeId    String   @unique
+  amountCents Int
+  currency    String
+  status      String
+  createdAt   DateTime @default(now())
+}
