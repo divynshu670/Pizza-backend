@@ -22,18 +22,27 @@ Node.js · TypeScript · Express · Prisma · PostgreSQL · Stripe · JWT · Pas
 
 # Setup
 Clone the repo and install dependencies.
+
 Add a .env file with your configs.
+
 Run migrations and generate Prisma client.
-Start the server:
+
+Start the server.
 
 # API Overview
 Auth → Signup, Login, Google OAuth
+
 Pizzas → List, Create (admin)
+
 Cart → Add, Update, Delete items
+
 Orders → Create order, process payment
+
 Payments → Stripe webhook endpoint
 
 # Notes
 Prices stored in integer cents to avoid floating-point issues.
+
 Cart items use atomic upsert with unique constraint (userId + pizzaId).
+
 Stripe webhook requires raw body parsing (express.raw).
